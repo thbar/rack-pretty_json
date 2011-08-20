@@ -19,6 +19,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rack', '>=1.0.0'
 
+  s.add_development_dependency 'rake'
+
   # specify any dependencies here; for example:
   s.add_development_dependency "shoulda"
   # s.add_runtime_dependency "rest-client"
