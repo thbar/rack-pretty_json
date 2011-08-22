@@ -6,7 +6,7 @@ module Rack
     def initialize(app, options = {})
       @app = app
     end
-    
+
     def call(env)
       status, headers, body = @app.call(env)
       if should_pretty_print?(headers)
@@ -18,7 +18,7 @@ module Rack
         [status, headers, body]
       end
     end
-    
+
   private
     def should_pretty_print?(headers)
       return false unless headers['Content-Type'] == 'application/json'
