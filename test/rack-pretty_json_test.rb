@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require 'test_helper'
   
 class RackPrettyJSONTest < Test::Unit::TestCase
@@ -8,11 +10,12 @@ class RackPrettyJSONTest < Test::Unit::TestCase
   CURL_USER_AGENT = "libcurl-agent/1.0"
   BROWSER_USER_AGENT = "mozilla"
 
-  def do_request(headers)
-    app = lambda { |env| [200, headers, [RAW_JSON]] }
-    request = Rack::MockRequest.env_for("/")
+  def do_request(response_headers, request_headers, body = RAW_JSON)
+    app = lambda { |env| [200, response_headers, [body]] }
+    env = Rack::MockRequest.env_for("/", request_headers)
     
-    Rack::PrettyJSON.new(app).call(request).last.last
+    response = Rack::PrettyJSON.new(app).call(env)
+    response = Rack::MockResponse.new(*response) if response.is_a?(Array)
   end
     
   context "with application/json content-type" do
@@ -20,8 +23,11 @@ class RackPrettyJSONTest < Test::Unit::TestCase
     context "and a non-browser user agent" do
     
       should "not pretty print response body" do
-        body = do_request({'Content-Type' => 'application/json', 'User-Agent' => CURL_USER_AGENT})
-        assert_equal RAW_JSON, body
+        response = do_request(
+          { 'Content-Type' => 'application/json' },
+          { 'HTTP_USER_AGENT' => CURL_USER_AGENT }
+        )
+        assert_equal RAW_JSON, response.body
       end
 
     end
@@ -29,8 +35,29 @@ class RackPrettyJSONTest < Test::Unit::TestCase
     context "and a browser user agent" do
       
       should "pretty print response body" do
-        body = do_request({'Content-Type' => 'application/json', 'User-Agent' => BROWSER_USER_AGENT})
-        assert_equal PRETTY_JSON, body
+        response = do_request(
+          { 'Content-Type' => 'application/json' },
+          { 'HTTP_USER_AGENT' => BROWSER_USER_AGENT }
+        )
+        assert_equal PRETTY_JSON, response.body
+      end
+      
+      should "pretty print response body even if a charset is provided" do
+        response = do_request(
+          { 'Content-Type' => 'application/json;charset=utf-8' },
+          { 'HTTP_USER_AGENT' => BROWSER_USER_AGENT }
+        )
+        assert_equal PRETTY_JSON, response.body
+      end
+      
+      should "modify the Content-Length based on modified content" do
+       # Test not working - to be fixed
+       response = do_request(
+          { 'Content-Type' => 'application/json;charset=utf-8' }, 
+          { 'HTTP_USER_AGENT' => BROWSER_USER_AGENT},
+          "éphémère"
+        )
+       assert_equal (8 + 3).to_s, response.headers['Content-Length']
       end
       
     end
@@ -41,8 +68,11 @@ class RackPrettyJSONTest < Test::Unit::TestCase
     context "with a non-browser user agent" do
       
       should "not pretty print response body" do
-        body = do_request({'Content-Type' => 'text/html', 'User-Agent' => CURL_USER_AGENT})
-        assert_equal RAW_JSON, body
+        response = do_request(
+          { 'Content-Type' => 'text/html' },
+          { 'HTTP_USER_AGENT' => CURL_USER_AGENT}
+        )
+        assert_equal RAW_JSON, response.body
       end
 
     end
@@ -50,8 +80,11 @@ class RackPrettyJSONTest < Test::Unit::TestCase
     context "with a browser user agent" do
 
       should "not pretty print response body" do
-        body = do_request({'Content-Type' => 'text/html', 'User-Agent' => BROWSER_USER_AGENT})
-        assert_equal RAW_JSON, body
+        response = do_request(
+          { 'Content-Type' => 'text/html' },
+          { 'HTTP_USER_AGENT' => BROWSER_USER_AGENT }
+        )
+        assert_equal RAW_JSON, response.body
       end
 
     end

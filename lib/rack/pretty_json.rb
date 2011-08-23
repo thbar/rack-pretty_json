@@ -9,10 +9,15 @@ module Rack
     
     def call(env)
       status, headers, body = @app.call(env)
-      if should_pretty_print?(headers)
+      
+      if should_pretty_print?(env, headers)
+        content_length = 0
         pretty_body = body.map do |data|
-          JSON.pretty_generate(JSON.parse(data))
+          result = JSON.pretty_generate(JSON.parse(data))
+          content_length += result.bytesize
+          result
         end
+        headers['Content-Length'] = content_length.to_s
         [status, headers, pretty_body]
       else
         [status, headers, body]
@@ -20,9 +25,9 @@ module Rack
     end
     
   private
-    def should_pretty_print?(headers)
-      return false unless headers['Content-Type'] == 'application/json'
-      return false unless headers['User-Agent'] =~ /Mozilla/i
+    def should_pretty_print?(env, headers)
+      return false unless headers['Content-Type'] =~ /^application\/json(;|$)/
+      return false unless env['HTTP_USER_AGENT'] =~ /Mozilla/i
       true
     end
   end
