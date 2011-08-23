@@ -11,17 +11,13 @@ Gem::Specification.new do |s|
   s.summary     = %q{Pretty print the JSON if the user-agent is a bowser}
   s.description = %q{If the requested resource is a JSON and the user agent is a browser, the response body is reformated for a better human readable format of the JSON (line breaks, indents, …).}
 
-  s.rubyforge_project = ""
-
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths = ["lib"]
 
-  s.add_dependency 'rack', '>=1.0.0'
+  s.add_runtime_dependency 'rack', '>=1.0.0'
+  s.add_runtime_dependency "json"
 
   s.add_development_dependency 'rake'
-
-  # specify any dependencies here; for example:
   s.add_development_dependency "shoulda"
-  # s.add_runtime_dependency "rest-client"
 end

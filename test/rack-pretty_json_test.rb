@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
-require 'test_helper'
-  
+require './test/test_helper'
+
 class RackPrettyJSONTest < Test::Unit::TestCase
 
   RAW_JSON = "{\"a\":4}"
@@ -17,11 +17,11 @@ class RackPrettyJSONTest < Test::Unit::TestCase
     response = Rack::PrettyJSON.new(app).call(env)
     response = Rack::MockResponse.new(*response) if response.is_a?(Array)
   end
-    
+
   context "with application/json content-type" do
-    
+
     context "and a non-browser user agent" do
-    
+
       should "not pretty print response body" do
         response = do_request(
           { 'Content-Type' => 'application/json' },
@@ -31,9 +31,9 @@ class RackPrettyJSONTest < Test::Unit::TestCase
       end
 
     end
-    
+
     context "and a browser user agent" do
-      
+
       should "pretty print response body" do
         response = do_request(
           { 'Content-Type' => 'application/json' },
@@ -59,14 +59,14 @@ class RackPrettyJSONTest < Test::Unit::TestCase
         )
        assert_equal (8 + 3).to_s, response.headers['Content-Length']
       end
-      
+
     end
   end
-  
+
   context "with another content-type" do
 
     context "with a non-browser user agent" do
-      
+
       should "not pretty print response body" do
         response = do_request(
           { 'Content-Type' => 'text/html' },
@@ -76,7 +76,7 @@ class RackPrettyJSONTest < Test::Unit::TestCase
       end
 
     end
-    
+
     context "with a browser user agent" do
 
       should "not pretty print response body" do
@@ -89,5 +89,5 @@ class RackPrettyJSONTest < Test::Unit::TestCase
 
     end
   end
-  
+
 end
